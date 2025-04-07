@@ -1,7 +1,6 @@
 #!/bin/bash
 
 INJECTORCONFIGFILE="injectorConfig.txt"
-REGMASKSFILE="regMasks.txt"
 SCRIPTSFOLDER="scripts"
 currentfolder=$(pwd)
 
@@ -12,13 +11,18 @@ if [[ $# -gt 1 ]]; then
 fi
 
 declare -A parameters
-parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE ERRORFILE"
+parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE"
 
 #initialize dictionary
 for p in $parametersString
 do
 	parameters[$p]="no"
 done
+
+#default values
+parameters[OUTCORRECTFILE]="outCorrect.txt"
+parameters[SUMMARYFILE]="simRes.txt"
+parameters[REGMASKSFILE]="registerMasks.txt"
 
 #reading injectorConfig.txt
 while read line
@@ -50,7 +54,7 @@ done
 
 
 #TODO if database folder not specified, don't copy outputs
-mandatoryParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER ISA CONFIG BINARYFILE"
+mandatoryParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER ISA CONFIG BINARYFILE OUTPUTFILE"
 folderParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER DATABASEFOLDER"
 
 #check if parameter is present
@@ -87,7 +91,11 @@ debugflags=${parameters[DEBUGFLAGS]}
 debugfile=${parameters[DEBUGFILE]}
 ticklimit=${parameters[TICKLIMIT]}
 outputfile=${parameters[OUTPUTFILE]}
-errorfile=${parameters[ERRORFILE]}
+errorredfile=${parameters[ERRORREDFILE]}
+outputredfile=${parameters[OUTPUTREDFILE]}
+outcorrectfile=${parameters[OUTCORRECTFILE]}
+summaryfile=${parameters[SUMMARYFILE]}
+regmasksfile=${parameters[REGMASKSFILE]}
 
 #check if files exist
 if ! [[ -f $gem5 ]]; then
@@ -107,15 +115,22 @@ fi
 
 #GOLDEN EXECUTION
 
-#empty regmasks file
-
 cd $simulationsfolder 
 #-------------------------------------------------------------------------------------------------------------
-rm -f $REGMASKSFILE
-touch $REGMASKSFILE
+
+#remove old outputs
+rm -rf outputs/*
+
+#create files
+rm -f "$regmasksfile"
+touch "$regmasksfile"	#empty regmasks file
+rm -f "$outputfile"
+touch "$outputfile"
+rm -f "$summaryfile"
+touch "$summaryfile"
 
 #run gem5 with empty regmasks file
-$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputfile $errorfile no no
+$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no no
 
 status=$?
 echo $status
@@ -125,8 +140,10 @@ if [[ $status == "255" ]] || [[ $status == "1" ]]; then	#TODO CHANGE RETURN VALU
 fi
 
 let goldenTicks=$(cat ./m5out/stats.txt | grep simTicks | head -n 1 | tr -s " " | cut -d " " -f2)
+cp "$outputfile" "$outcorrectfile"
 #-------------------------------------------------------------------------------------------------------------
 cd $currentfolder
+exit 1
 
 #check ticklimit
 if [[ $ticklimit == *"%"* ]]; then
