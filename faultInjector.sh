@@ -143,7 +143,6 @@ let goldenTicks=$(cat ./m5out/stats.txt | grep simTicks | head -n 1 | tr -s " " 
 cp "$outputfile" "$outcorrectfile"
 #-------------------------------------------------------------------------------------------------------------
 cd $currentfolder
-exit 1
 
 #check ticklimit
 if [[ $ticklimit == *"%"* ]]; then
@@ -157,8 +156,6 @@ else
 	echo "Tick limit = $ticklimit"
 	echo
 fi
-
-echo $ticklimit
 
 #FAULTY EXECUTIONS
 
@@ -188,7 +185,7 @@ do
 		if [[ "$mask" == "" ]] && [[ "$type" == "" ]]; then
 			#only two parameters -> use custom file
 			customFile=$regs
-			cat $customFile > $REGMASKSFILE
+			cat $customFile > $regmasksfile
 		else
 			#four parameters
 			if [[ "$mask" == "" ]] || [[ "$type" == "" ]]; then
@@ -197,23 +194,40 @@ do
 				echo "ID;CUSTOMFILE"
 				exit 1
 			else
-				$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $REGMASKSFILE
+				$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $regmasksfile
 			fi
 		fi
 		
 		#debugging echos
 		echo "RegisterMasks #$counter"
-		cat $REGMASKSFILE
+		cat $regmasksfile
 		echo
 		
 		#start execution using the current regMasks file
-		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputfile $errorfile no $ticklimit
+		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit
 		status=$?
-
-		if [[ $status == "-1" ]]; then
+		echo "Status: $status"
+		if [[ $status == "255" ]]; then
 			echo "Exiting..."
 			exit 1
 		fi
+		
+		#classify the fault
+		$currentfolder/$SCRIPTSFOLDER/classify.sh $id $outputfile $outcorrectfile $summaryfile $status
+		if [[ "$?" == "1" ]]; then
+			echo "Exiting..."
+			exit 1
+		fi
+		
+		#store the output files and the statistics, as well as the register masks applied
+		#TODO change if output redirection is applied
+		$currentfolder/$SCRIPTSFOLDER/outAndStats.sh $id $outputsfolder $outputfile $regmasksfile
+		if [[ "$?" == "1" ]]; then
+			echo "Exiting..."
+			exit 1
+		fi
+		
+		#TODO move all outputs into the database folder, as well as the dictionary of faults (summary file)
 		
 	fi
 done < $faultlistfile
@@ -221,6 +235,5 @@ done < $faultlistfile
 #-------------------------------------------------------------------------------------------------------------
 cd $currentfolder
 
-#use predefined regMasks
-	
+echo "Bye bye"
 

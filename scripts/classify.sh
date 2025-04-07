@@ -1,42 +1,40 @@
 #!/bin/bash
 
-if [[ $# -ne 4 ]];
+if [[ $# -ne 5 ]];
 then
-	echo "Wrong number of arguments. Usage: ./classify.sh OUTFILE OUTCORRECTFILE SUMMARYFILE STATUS"
+	echo "Wrong number of arguments. Usage: ./classify.sh ID OUTFILE OUTCORRECTFILE SUMMARYFILE STATUS"
 	exit 1
 fi
 
-OUTFILE=$1		#first argument
-OUTCORRECTFILE=$2	#second argument
-SUMMARYFILE=$3		#third argument
-STATUS=$4		#fourth argument
+ID=$1
+OUTFILE=$2		
+OUTCORRECTFILE=$3	
+SUMMARYFILE=$4		
+STATUS=$5		
 STATSFILE="m5out/stats.txt"
-
-wcOut=$(ls -l outputs | wc)
-id=$(echo $wcOut | cut -d " " -f1) 
 
 
 if [[ $STATUS -ne 0 ]];	#DUE
 then
 	if [[ $STATUS -eq 1 ]];
 	then
-		echo "$id -> DUE (infinite loop)" >> "$SUMMARYFILE"
+		echo "$ID -> DUE (infinite loop)" >> "$SUMMARYFILE"
 	fi
 	if [[ $STATUS -eq 134 ]];
 	then
-		echo "$id -> DUE (segmentation fault)" >> "$SUMMARYFILE"
+		echo "$ID -> DUE (segmentation fault)" >> "$SUMMARYFILE"
 	fi
 else
 	#check if output is different wrt to the original one
-	diff "$OUTFILE" "$OUTCORRECTFILE"
+	diff "$OUTFILE" "$OUTCORRECTFILE" > /dev/null
 	if [[ "$?" -eq 0 ]];
 	then
 		#no differences
-		echo "$id -> masked" >> "$SUMMARYFILE"
+		echo "$ID -> masked" >> "$SUMMARYFILE"
 	elif [[ $? -eq 1 ]];
 	then
 		#different outputs
-		echo "$id -> SDC" >> "$SUMMARYFILE"
+		echo "$ID -> SDC" >> "$SUMMARYFILE"
 	fi
 fi
 exit 0

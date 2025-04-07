@@ -1,22 +1,24 @@
 #!/bin/bash
 
-if [[ $# -ne 2 ]]
+if [[ $# -ne 4 ]]
 then
-	echo "Wrong number of arguments. Usage ./outAndStats OUTFILE REGMASKSFILE"
+	echo "Wrong number of arguments. Usage ./outAndStats ID OUTFOLDER OUTFILE REGMASKSFILE"
 	exit 1
 fi
 
-OUTFILE=$1
-REGMASKSFILE=$2
+ID=$1
+OUTFOLDER=$2
+OUTFILE=$3
+REGMASKSFILE=$4
 
-wcOut=$(ls -l outputs | wc)
-nOuts=$(echo $wcOut | cut -d " " -f1) 
+#wcOut=$(ls -l outputs | wc)
+#nOuts=$(echo $wcOut | cut -d " " -f1) 
 
-echo $nOuts elements in the outputs folder
+#echo $nOuts elements in the outputs folder
 #nOuts will always be nElements+1
 
-cp -r m5out outputs/$nOuts
-cp $1 outputs/$nOuts/$1
-cp $2 outputs/$nOuts/$2
+cp -r m5out $OUTFOLDER/$ID
+cp $OUTFILE $OUTFOLDER/$ID/$OUTFILE
+cp $REGMASKSFILE $OUTFOLDER/$ID/$REGMASKSFILE
 
 exit 0
