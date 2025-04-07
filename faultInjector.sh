@@ -2,7 +2,8 @@
 
 INJECTORCONFIGFILE="injectorConfig.txt"
 REGMASKSFILE="regMasks.txt"
-SCRIPTSFOLDER="./scripts"
+SCRIPTSFOLDER="scripts"
+currentfolder=$(pwd)
 
 if [[ $# -gt 1 ]]; then
 	echo "Wrong number of arguments. Usage:"
@@ -11,7 +12,13 @@ if [[ $# -gt 1 ]]; then
 fi
 
 declare -A parameters
-parametersString="BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE"
+parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE ERRORFILE"
+
+#initialize dictionary
+for p in $parametersString
+do
+	parameters[$p]="no"
+done
 
 #reading injectorConfig.txt
 while read line
@@ -26,22 +33,30 @@ do
 		do
 			if [[ "$field1" == "$p" ]]
 			then
-				parameters[$p]="$field2"
-				#echo "${parameters[$p]}"
+				if [[ "$field2" != "" ]]; then
+					parameters[$p]="$field2"
+				fi
 			fi
 		done
 	fi
 	
 done < injectorConfig.txt
 
-mandatoryParams="BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER DATABASEFOLDER ISA CONFIG BINARYFILE"
-folderParams="BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER DATABASEFOLDER"
-fileParams="FAULTLISTFILE GEM5 CONFIG BINARYFILE"
+#debugging echoes
+for p in $parametersString
+do
+	echo "$p -> ${parameters[$p]}"
+done
+
+
+#TODO if database folder not specified, don't copy outputs
+mandatoryParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER ISA CONFIG BINARYFILE"
+folderParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER DATABASEFOLDER"
 
 #check if parameter is present
 for p in $mandatoryParams
 do
-	if [[ ${parameters[$p]} == "" ]]; then
+	if [[ ${parameters[$p]} == "no" ]]; then
 		echo "Missing mandatory parameter $p in the configuration file"
 		exit 1
 	fi
@@ -56,6 +71,7 @@ do
 	fi
 done
 
+simulationsfolder=${parameters[SIMULATIONSFOLDER]}
 binaryfilesfolder=${parameters[BINARYFILESFOLDER]}
 gem5folder=${parameters[GEM5FOLDER]}
 gem5configsfolder=${parameters[GEM5CONFIGSFOLDER]}
@@ -69,6 +85,9 @@ config=$gem5configsfolder/${parameters[CONFIG]}
 binaryfile=$binaryfilesfolder/${parameters[BINARYFILE]}
 debugflags=${parameters[DEBUGFLAGS]}
 debugfile=${parameters[DEBUGFILE]}
+ticklimit=${parameters[TICKLIMIT]}
+outputfile=${parameters[OUTPUTFILE]}
+errorfile=${parameters[ERRORFILE]}
 
 #check if files exist
 if ! [[ -f $gem5 ]]; then
@@ -84,21 +103,106 @@ if ! [[ -f $binaryfile ]]; then
 	"$binaryfile does not exist"
 fi
 
+#BEGINNING OF EXECUTIONS
 
+#GOLDEN EXECUTION
+
+#empty regmasks file
+
+cd $simulationsfolder 
+#-------------------------------------------------------------------------------------------------------------
+rm -f $REGMASKSFILE
+touch $REGMASKSFILE
+
+#run gem5 with empty regmasks file
+$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputfile $errorfile no no
+
+status=$?
+echo $status
+if [[ $status == "255" ]] || [[ $status == "1" ]]; then	#TODO CHANGE RETURN VALUE OF INFINITE LOOP. 1 USED FOR GENERIC ERROR
+	echo "Exiting..."
+	exit 1
+fi
+
+let goldenTicks=$(cat ./m5out/stats.txt | grep simTicks | head -n 1 | tr -s " " | cut -d " " -f2)
+#-------------------------------------------------------------------------------------------------------------
+cd $currentfolder
+
+#check ticklimit
+if [[ $ticklimit == *"%"* ]]; then
+	let percentage=$(echo $ticklimit | cut -d "%" -f1)
+	let ticklimit=$goldenTicks*$percentage/100
+	echo
+	echo "Percentage = ${percentage}% -> Tick limit = $ticklimit"
+	echo
+else
+	echo
+	echo "Tick limit = $ticklimit"
+	echo
+fi
+
+echo $ticklimit
+
+#FAULTY EXECUTIONS
+
+cd $simulationsfolder 
+#-------------------------------------------------------------------------------------------------------------
 #read fault list line by line
+let counter=0
 while read line
 do	
-	#if not a comment
+	#if not a comment, retrieve id, regs, mask, type
 	if ! [[ $line =~ ^# ]]; then
+		#generate regMasks from fault list
+		let counter=$counter+1
 		id=$(echo $line | cut -d ';' -f1)
 		regs=$(echo $line | cut -d ';' -f2)
 		mask=$(echo $line | cut -d ';' -f3)
 		type=$(echo $line | cut -d ';' -f4)
-		./$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $REGMASKSFILE
+		
+		#wrong formatting -> exit
+		if [[ "$id" == "" ]] || [[ "$regs" == "" ]]; then
+			echo "Error reading fault list. Each line must be formatted in one of the following ways:"
+			echo "ID;REGISTERS;MASK;FAULTTYPE"
+			echo "ID;CUSTOMFILE"
+			exit 1
+		fi
+		
+		if [[ "$mask" == "" ]] && [[ "$type" == "" ]]; then
+			#only two parameters -> use custom file
+			customFile=$regs
+			cat $customFile > $REGMASKSFILE
+		else
+			#four parameters
+			if [[ "$mask" == "" ]] || [[ "$type" == "" ]]; then
+				echo "Error reading fault list. Each line must be formatted in one of the following ways:"
+				echo "ID;REGISTERS;MASK;FAULTTYPE"
+				echo "ID;CUSTOMFILE"
+				exit 1
+			else
+				$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $REGMASKSFILE
+			fi
+		fi
+		
+		#debugging echos
+		echo "RegisterMasks #$counter"
+		cat $REGMASKSFILE
+		echo
+		
+		#start execution using the current regMasks file
+		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputfile $errorfile no $ticklimit
+		status=$?
+
+		if [[ $status == "-1" ]]; then
+			echo "Exiting..."
+			exit 1
+		fi
+		
 	fi
 done < $faultlistfile
 
-#generate regMasks from fault list
+#-------------------------------------------------------------------------------------------------------------
+cd $currentfolder
 
 #use predefined regMasks
 	
