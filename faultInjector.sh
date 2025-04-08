@@ -80,7 +80,8 @@ binaryfilesfolder=${parameters[BINARYFILESFOLDER]}
 gem5folder=${parameters[GEM5FOLDER]}
 gem5configsfolder=${parameters[GEM5CONFIGSFOLDER]}
 faultlistsfolder=${parameters[FAULTLISTSFOLDER]}
-faultlistfile=$faultlistsfolder/${parameters[FAULTLISTFILE]}
+faultlistfile=${parameters[FAULTLISTFILE]}
+faultlistpath=$faultlistsfolder/$faultlistfile
 outputsfolder=${parameters[OUTPUTSFOLDER]}
 databasefolder=${parameters[DATABASEFOLDER]}
 isa=${parameters[ISA]}
@@ -104,8 +105,8 @@ fi
 if ! [[ -f $config ]]; then
 	"$config does not exist"
 fi
-if ! [[ -f $faultlistfile ]]; then
-	"$faultlistfile does not exist"
+if ! [[ -f $faultlistpath ]]; then
+	"$faultlistpath does not exist"
 fi
 if ! [[ -f $binaryfile ]]; then
 	"$binaryfile does not exist"
@@ -226,11 +227,15 @@ do
 			echo "Exiting..."
 			exit 1
 		fi
-		
-		#TODO move all outputs into the database folder, as well as the dictionary of faults (summary file)
-		
 	fi
-done < $faultlistfile
+done < $faultlistpath
+
+#summaryfile is already a path since we are in the simulations folder. I had to access the dictionary to avoid bringing the whole path as a name
+$currentfolder/$SCRIPTSFOLDER/storeInDB.sh  $outputsfolder $databasefolder $faultlistsfolder $faultlistfile $summaryfile
+if [[ "$?" == "1" ]]; then
+	echo "Exiting..."
+	exit 1
+fi
 
 #-------------------------------------------------------------------------------------------------------------
 cd $currentfolder
