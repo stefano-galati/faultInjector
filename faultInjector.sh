@@ -11,7 +11,7 @@ if [[ $# -gt 1 ]]; then
 fi
 
 declare -A parameters
-parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE"
+parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE CREATEHISTOGRAM"
 
 #initialize dictionary
 for p in $parametersString
@@ -97,6 +97,7 @@ outputredfile=${parameters[OUTPUTREDFILE]}
 outcorrectfile=${parameters[OUTCORRECTFILE]}
 summaryfile=${parameters[SUMMARYFILE]}
 regmasksfile=${parameters[REGMASKSFILE]}
+createhistogram=${parameters[CREATEHISTOGRAM]}
 
 #check if files exist
 if ! [[ -f $gem5 ]]; then
@@ -230,6 +231,10 @@ do
 	fi
 done < $faultlistpath
 
+if [[ $createhistogram = "yes" ]] || [[ $createhistogram = "YES" ]]; then
+	$currentfolder/$SCRIPTSFOLDER/createHistogram.sh $summaryfile
+fi
+
 #summaryfile is already a path since we are in the simulations folder. I had to access the dictionary to avoid bringing the whole path as a name
 $currentfolder/$SCRIPTSFOLDER/storeInDB.sh  $outputsfolder $databasefolder $faultlistsfolder $faultlistfile $summaryfile
 if [[ "$?" == "1" ]]; then
@@ -240,5 +245,6 @@ fi
 #-------------------------------------------------------------------------------------------------------------
 cd $currentfolder
 
+echo
 echo "Bye bye"
 

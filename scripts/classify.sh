@@ -18,11 +18,11 @@ if [[ $STATUS -ne 0 ]];	#DUE
 then
 	if [[ $STATUS -eq 1 ]];
 	then
-		echo "$ID -> DUE (infinite loop)" >> "$SUMMARYFILE"
+		echo "$ID> DUE (infinite loop)" >> "$SUMMARYFILE"
 	fi
 	if [[ $STATUS -eq 134 ]];
 	then
-		echo "$ID -> DUE (segmentation fault)" >> "$SUMMARYFILE"
+		echo "$ID> DUE (segmentation fault)" >> "$SUMMARYFILE"
 	fi
 else
 	#check if output is different wrt to the original one
@@ -30,11 +30,11 @@ else
 	if [[ "$?" -eq 0 ]];
 	then
 		#no differences
-		echo "$ID -> masked" >> "$SUMMARYFILE"
+		echo "$ID> masked" >> "$SUMMARYFILE"
 	elif [[ $? -eq 1 ]];
 	then
 		#different outputs
-		echo "$ID -> SDC" >> "$SUMMARYFILE"
+		echo "$ID> SDC" >> "$SUMMARYFILE"
 	fi
 fi
 exit 0
