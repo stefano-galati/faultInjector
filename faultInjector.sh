@@ -46,12 +46,6 @@ do
 	
 done < injectorConfig.txt
 
-#debugging echoes
-for p in $parametersString
-do
-	echo "$p -> ${parameters[$p]}"
-done
-
 
 #TODO if database folder not specified, don't copy outputs
 mandatoryParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER OUTPUTSFOLDER ISA CONFIG BINARYFILE OUTPUTFILE"
@@ -77,15 +71,37 @@ done
 
 #get command line parameters
 if [[ $# -gt 0 ]]; then
+	if [[ $# -eq 1 ]] && ( [[ $1 == "-h" ]] || [[ $1 == "--help" ]] ); then
+		echo "List of parameters"
+		echo "|  |  |  |  |  |  |"
+		echo "v  v  v  v  v  v  v"
+		for elem in ${!parameters[@]}
+		do
+			echo $elem
+		done
+		exit 0
+	fi
+	
 	for param in $@
 	do
 		#parameter is PARAMNAME=VALUE
 		name=$(echo $param | cut -d "=" -f1)
 		value=$(echo $param | cut -d "=" -f2)
-
+		
+		if ! [[ -v parameters[$name] ]]; then
+			echo "Parameter $name does not exist"	
+			exit 1	
+		fi
+		
 		parameters[$name]=$value
 	done
 fi
+
+#debugging echoes
+for p in $parametersString
+do
+	echo "$p -> ${parameters[$p]}"
+done
 
 simulationsfolder=${parameters[SIMULATIONSFOLDER]}
 binaryfilesfolder=${parameters[BINARYFILESFOLDER]}
