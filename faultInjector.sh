@@ -75,6 +75,18 @@ do
 	fi
 done
 
+#get command line parameters
+if [[ $# -gt 0 ]]; then
+	for param in $@
+	do
+		#parameter is PARAMNAME=VALUE
+		name=$(echo $param | cut -d "=" -f1)
+		value=$(echo $param | cut -d "=" -f2)
+
+		parameters[$name]=$value
+	done
+fi
+
 simulationsfolder=${parameters[SIMULATIONSFOLDER]}
 binaryfilesfolder=${parameters[BINARYFILESFOLDER]}
 gem5folder=${parameters[GEM5FOLDER]}
@@ -103,16 +115,20 @@ customregmasksfolder=${parameters[CUSTOMREGMASKSFOLDER]}
 
 #check if files exist
 if ! [[ -f $gem5 ]]; then
-	"$gem5 does not exist"
+	echo "$gem5 does not exist"
+	exit 1
 fi
 if ! [[ -f $config ]]; then
-	"$config does not exist"
+	echo "$config does not exist"
+	exit 1
 fi
 if ! [[ -f $faultlistpath ]]; then
-	"$faultlistpath does not exist"
+	echo "$faultlistpath does not exist"
+	exit 1
 fi
 if ! [[ -f $binaryfile ]]; then
-	"$binaryfile does not exist"
+	echo "$binaryfile does not exist"
+	exit 1
 fi
 
 #BEGINNING OF EXECUTIONS
@@ -210,7 +226,7 @@ do
 		#start execution using the current regMasks file
 		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit
 		status=$?
-		echo "Status: $status"
+		#echo "Status: $status"
 		if [[ $status == "255" ]]; then
 			echo "Exiting..."
 			exit 1

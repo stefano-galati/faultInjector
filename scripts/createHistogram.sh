@@ -27,9 +27,13 @@ do
 	
 done < $dictionaryFile
 
+echo
+echo "-----------------------------"
 echo 
 echo "Histogram"
-echo 
+echo "|||||||||"
+echo "vvvvvvvvv"
+echo
 
 for key in "${!histogram[@]}"
 do
