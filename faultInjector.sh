@@ -1,8 +1,9 @@
 #!/bin/bash
 
-INJECTORCONFIGFILE="injectorConfig.txt"
-SCRIPTSFOLDER="scripts"
 currentfolder=$(pwd)
+INJECTORCONFIGFILE="../simulations/injectorConfig.txt"
+SCRIPTSFOLDER="scripts"
+
 
 if [[ $# -gt 1 ]]; then
 	echo "Wrong number of arguments. Usage:"
@@ -44,7 +45,7 @@ do
 		done
 	fi
 	
-done < injectorConfig.txt
+done < $INJECTORCONFIGFILE
 
 
 #TODO if database folder not specified, don't copy outputs
