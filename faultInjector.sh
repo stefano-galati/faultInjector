@@ -5,11 +5,11 @@ INJECTORCONFIGFILE="../simulations/injectorConfig.txt"
 SCRIPTSFOLDER="scripts"
 
 
-if [[ $# -gt 1 ]]; then
-	echo "Wrong number of arguments. Usage:"
-	echo "./faultInjector.sh (using fault list specified in injectorConfig.txt)"
-	echo "./faultInjector.sh FAULTLISTFILE"
-fi
+#if [[ $# -gt 1 ]]; then
+#	echo "Wrong number of arguments. Usage:"
+#	echo "./faultInjector.sh (using fault list specified in injectorConfig.txt)"
+#	echo "./faultInjector.sh FAULTLISTFILE"
+#fi
 
 declare -A parameters
 parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE CREATEHISTOGRAM"
