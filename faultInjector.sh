@@ -200,16 +200,20 @@ cd $simulationsfolder
 #-------------------------------------------------------------------------------------------------------------
 #read fault list line by line
 let counter=0
-while read line
-do	
+exec 3< "$faultlistpath"
+while IFS= read -r line <&3 || [ -n "$line" ]; do	
+	echo ""
+	echo $line
+	echo ""
+	
 	#if not a comment, retrieve id, regs, mask, type
 	if ! [[ $line =~ ^# ]]; then
 		#generate regMasks from fault list
 		let counter=$counter+1
-		id=$(echo $line | cut -d ';' -f1)
-		regs=$(echo $line | cut -d ';' -f2)
-		mask=$(echo $line | cut -d ';' -f3)
-		type=$(echo $line | cut -d ';' -f4)
+		id=$(echo "$line" | cut -d ';' -f1)
+		regs=$(echo "$line" | cut -d ';' -f2)
+		mask=$(echo "$line" | cut -d ';' -f3)
+		type=$(echo "$line" | cut -d ';' -f4)
 		
 		#wrong formatting -> exit
 		if [[ "$id" == "" ]] || [[ "$regs" == "" ]]; then
@@ -232,6 +236,9 @@ do
 				exit 1
 			else
 				$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $regmasksfile
+				if [[ "$?" == "1" ]]; then
+					continue
+				fi
 			fi
 		fi
 		
@@ -264,7 +271,8 @@ do
 			exit 1
 		fi
 	fi
-done < $faultlistpath
+done
+exec 3<&-
 
 if [[ $createhistogram = "yes" ]] || [[ $createhistogram = "YES" ]]; then
 	$currentfolder/$SCRIPTSFOLDER/createHistogram.sh $summaryfile
