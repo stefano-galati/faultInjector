@@ -19,7 +19,7 @@ TICKLIMIT=$9
 # IMPORTANT:
 # SPECIFY THE ISA BEFORE ANY OTHER VARIABLE
 
-rm -f m5out/*
+rm -rf m5out/*
 
 #print values
 if [[ $SHOWARGS == "true" ]]

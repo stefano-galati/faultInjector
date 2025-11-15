@@ -16,7 +16,7 @@ STATSFILE="m5out/stats.txt"
 
 if [[ $STATUS -ne 0 ]];	#DUE
 then
-	if [[ $STATUS -eq 1 ]];
+	if [[ $STATUS -eq 2 ]];
 	then
 		echo "$ID> DUE (infinite loop)" >> "$SUMMARYFILE"
 	fi

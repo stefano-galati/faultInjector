@@ -171,7 +171,7 @@ $currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugf
 
 status=$?
 echo $status
-if [[ $status == "255" ]] || [[ $status == "1" ]]; then	#TODO CHANGE RETURN VALUE OF INFINITE LOOP. 1 USED FOR GENERIC ERROR
+if [[ $status == "255" ]] || [[ $status == "1" ]]; then
 	echo "Exiting..."
 	exit 1
 fi
@@ -274,7 +274,7 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 done
 exec 3<&-
 
-if [[ $createhistogram = "yes" ]] || [[ $createhistogram = "YES" ]]; then
+if [[ $createhistogram = "yes" ]]; then
 	$currentfolder/$SCRIPTSFOLDER/createHistogram.sh $summaryfile
 fi
 
