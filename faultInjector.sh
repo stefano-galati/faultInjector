@@ -7,8 +7,7 @@ SCRIPTSFOLDER="scripts"
 
 #if [[ $# -gt 1 ]]; then
 #	echo "Wrong number of arguments. Usage:"
-#	echo "./faultInjector.sh (using fault list specified in injectorConfig.txt)"
-#	echo "./faultInjector.sh FAULTLISTFILE"
+#	echo "./faultInjector.sh PARAMNAME=VALUE"
 #fi
 
 declare -A parameters

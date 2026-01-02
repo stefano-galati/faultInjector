@@ -19,11 +19,13 @@ then
 	if [[ $STATUS -eq 2 ]];
 	then
 		echo "$ID> DUE (infinite loop)" >> "$SUMMARYFILE"
-	fi
-	if [[ $STATUS -eq 134 ]];
+	elif [[ $STATUS -eq 134 ]];
 	then
 		echo "$ID> DUE (segmentation fault)" >> "$SUMMARYFILE"
+	else
+		echo "$ID> DUE" >> "$SUMMARYFILE"
 	fi
+	
 else
 	#check if output is different wrt to the original one
 	diff "$OUTFILE" "$OUTCORRECTFILE" > /dev/null
