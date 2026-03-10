@@ -11,7 +11,7 @@ SCRIPTSFOLDER="scripts"
 #fi
 
 declare -A parameters
-parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE CREATEHISTOGRAM"
+parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE CREATEHISTOGRAM FAULTLOGS"
 
 #initialize dictionary
 for p in $parametersString
@@ -127,6 +127,7 @@ summaryfile=${parameters[SUMMARYFILE]}
 regmasksfile=${parameters[REGMASKSFILE]}
 createhistogram=${parameters[CREATEHISTOGRAM]}
 customregmasksfolder=${parameters[CUSTOMREGMASKSFOLDER]}
+faultlogs=${parameters[FAULTLOGS]}
 
 
 #check if files exist
@@ -166,7 +167,7 @@ rm -f "$summaryfile"
 touch "$summaryfile"
 
 #run gem5 with empty regmasks file
-$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no no
+$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no no no
 
 status=$?
 echo $status
@@ -247,8 +248,17 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 		echo
 		
 		#start execution using the current regMasks file
-		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit
+		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit $faultlogs
 		status=$?
+		
+		if [[ $faultlogs != "no" ]]; then
+			# only the first fault is checked, then simulation is aborted
+			cat m5out/faultLogs.txt | grep $faultlogs | cut -d':' -f1 > faultLogs.txt	
+			
+			echo "Logs of $faultlogs faults have been printed into faultLogs.txt"
+			exit 1
+		fi
+		
 		#echo "Status: $status"
 		if [[ $status == "255" ]]; then
 			echo "Exiting..."

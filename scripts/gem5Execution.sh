@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [[ $# -lt 9 ]]; then
+if [[ $# -lt 10 ]]; then
 	echo "$#"
-	echo "Wrong number of parameters. Usage gem5Execution.sh GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE OUTPUTFILE ERRORFILE SHOWARGS TICKLIMIT"
+	echo "Wrong number of parameters. Usage gem5Execution.sh GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE OUTPUTFILE ERRORFILE SHOWARGS TICKLIMIT FAULTLOGS"
 	exit -1
 fi
 
@@ -15,6 +15,7 @@ OUTPUTFILE=$6
 ERRORFILE=$7
 SHOWARGS=$8
 TICKLIMIT=$9
+FAULTLOGS=${10}
 
 # IMPORTANT:
 # SPECIFY THE ISA BEFORE ANY OTHER VARIABLE
@@ -31,6 +32,7 @@ then
 	echo "DEBUGFILE = $DEBUGFILE"
 	echo "OUTPUTFILE = $OUTPUTFILE"
 	echo "ERRORFILE = $ERRORFILE" 
+	echo "FAULTLOGS = $FAULTLOGS"
 fi
 
 #build command
@@ -59,6 +61,11 @@ fi
 if [[ $TICKLIMIT != "no" ]]
 then
 	CONFIG="$CONFIG --tick_limit $TICKLIMIT"
+fi
+
+if [[ $FAULTLOGS != "no" ]]
+then
+	command="$command --debug-flags=FaultLogs --debug-file=faultLogs.txt"
 fi
 
 command="$command $CONFIG $BINARYFILE"
