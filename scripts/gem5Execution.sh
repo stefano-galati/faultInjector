@@ -63,7 +63,7 @@ then
 	CONFIG="$CONFIG --tick_limit $TICKLIMIT"
 fi
 
-if [[ $FAULTLOGS != "no" ]]
+if [[ $FAULTLOGS == "yes" ]]
 then
 	command="$command --debug-flags=FaultLogs --debug-file=faultLogs.txt"
 fi

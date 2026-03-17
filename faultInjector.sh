@@ -11,7 +11,7 @@ SCRIPTSFOLDER="scripts"
 #fi
 
 declare -A parameters
-parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE CREATEHISTOGRAM FAULTLOGS"
+parametersString="SIMULATIONSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER FAULTLISTFILE OUTPUTSFOLDER DATABASEFOLDER ISA GEM5 CONFIG BINARYFILE DEBUGFLAGS DEBUGFILE TICKLIMIT OUTPUTFILE OUTPUTREDFILE ERRORREDFILE OUTCORRECTFILE SUMMARYFILE REGMASKSFILE CREATEHISTOGRAM FAULTLOGS FAULTLOGSFOLDER"
 
 #initialize dictionary
 for p in $parametersString
@@ -23,6 +23,7 @@ done
 parameters[OUTCORRECTFILE]="outCorrect.txt"
 parameters[SUMMARYFILE]="simRes.txt"
 parameters[REGMASKSFILE]="registerMasks.txt"
+parameters[FAULTLOGSFOLDER]="faultLogs"
 
 #reading injectorConfig.txt
 while read line
@@ -128,6 +129,7 @@ regmasksfile=${parameters[REGMASKSFILE]}
 createhistogram=${parameters[CREATEHISTOGRAM]}
 customregmasksfolder=${parameters[CUSTOMREGMASKSFOLDER]}
 faultlogs=${parameters[FAULTLOGS]}
+faultlogsfolder=${parameters[FAULTLOGSFOLDER]}
 
 
 #check if files exist
@@ -167,9 +169,23 @@ rm -f "$summaryfile"
 touch "$summaryfile"
 
 #run gem5 with empty regmasks file
-$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no no no
+$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no no $faultlogs
 
 status=$?
+
+if [[ $faultlogs == "yes" ]]; then
+	# save the debug logs in a file and abort the simulation
+	
+	for i in {0..31}; do
+		cat m5out/faultLogs.txt | grep "Reading register $i\." | cut -d ':' -f1 > $simulationsfolder/$faultlogsfolder/$i.txt	
+		echo "Logs of register $i have been printed into $i.txt"
+	done
+	
+	#rm -rf m5out/faultLogs.txt
+	
+	exit 1
+fi
+
 echo $status
 if [[ $status == "255" ]] || [[ $status == "1" ]]; then
 	echo "Exiting..."
@@ -248,16 +264,8 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 		echo
 		
 		#start execution using the current regMasks file
-		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit $faultlogs
+		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit no
 		status=$?
-		
-		if [[ $faultlogs != "no" ]]; then
-			# only the first fault is checked, then simulation is aborted
-			cat m5out/faultLogs.txt | grep $faultlogs | cut -d':' -f1 > faultLogs.txt	
-			
-			echo "Logs of $faultlogs faults have been printed into faultLogs.txt"
-			exit 1
-		fi
 		
 		#echo "Status: $status"
 		if [[ $status == "255" ]]; then
