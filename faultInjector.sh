@@ -210,10 +210,14 @@ else
 	echo
 fi
 
+
+
 #FAULTY EXECUTIONS
 
 cd $simulationsfolder 
+
 #-------------------------------------------------------------------------------------------------------------
+
 #read fault list line by line
 let counter=0
 exec 3< "$faultlistpath"
@@ -221,6 +225,9 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 	echo ""
 	echo $line
 	echo ""
+	
+	# save faultTimeIntervals in a tmp file
+	cp faultTimeIntervals.txt tmpFaultTimeIntervals.txt
 	
 	#if not a comment, retrieve id, regs, mask, type
 	if ! [[ $line =~ ^# ]]; then
@@ -230,6 +237,7 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 		regs=$(echo "$line" | cut -d ';' -f2)
 		mask=$(echo "$line" | cut -d ';' -f3)
 		type=$(echo "$line" | cut -d ';' -f4)
+		accessnumber=$(echo "$line" | cut -d ';' -f5)
 		
 		#wrong formatting -> exit
 		if [[ "$id" == "" ]] || [[ "$regs" == "" ]]; then
@@ -244,14 +252,19 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 			customFile=$customregmasksfolder/$regs
 			cat $customFile > $regmasksfile
 		else
-			#four parameters
+			#four parameters (five if BITFLIP)
 			if [[ "$mask" == "" ]] || [[ "$type" == "" ]]; then
 				echo "Error reading fault list. Each line must be formatted in one of the following ways:"
-				echo "ID;REGISTERS;MASK;FAULTTYPE"
+				echo "ID;REGISTERS;MASK;FAULTTYPE[;ACCESSNUMBER]"
 				echo "ID;CUSTOMFILE"
 				exit 1
 			else
-				$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $regmasksfile
+				if [[ $accessnumber == "" ]]; then
+					$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $regmasksfile
+				else
+					$currentfolder/$SCRIPTSFOLDER/generateRegMasks.sh $regs $mask $type $regmasksfile $accessnumber $faultlogsfolder
+				fi
+				
 				if [[ "$?" == "1" ]]; then
 					continue
 				fi
@@ -288,6 +301,9 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 			exit 1
 		fi
 	fi
+	
+	# retrieve faultTimeIntervals from tmp file
+	mv tmpFaultTimeIntervals.txt faultTimeIntervals.txt
 done
 exec 3<&-
 
@@ -302,7 +318,9 @@ if [[ "$?" == "1" ]]; then
 	exit 1
 fi
 
+
 #-------------------------------------------------------------------------------------------------------------
+
 cd $currentfolder
 
 echo
