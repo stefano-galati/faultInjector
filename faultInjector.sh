@@ -50,7 +50,7 @@ done < $INJECTORCONFIGFILE
 
 #TODO if database folder not specified, don't copy outputs
 mandatoryParams="SIMULATIONSFOLDER  BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER CUSTOMREGMASKSFOLDER OUTPUTSFOLDER ISA CONFIG BINARYFILE OUTPUTFILE"
-folderParams="SIMULATIONSFOLDER CUSTOMREGMASKSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER DATABASEFOLDER"
+folderParams="SIMULATIONSFOLDER CUSTOMREGMASKSFOLDER BINARYFILESFOLDER GEM5FOLDER GEM5CONFIGSFOLDER FAULTLISTSFOLDER OUTPUTSFOLDER DATABASEFOLDER FAULTLOGSFOLDER"
 
 #check if parameter is present
 for p in $mandatoryParams
@@ -177,7 +177,7 @@ if [[ $faultlogs == "yes" ]]; then
 	# save the debug logs in a file and abort the simulation
 	
 	for i in {0..31}; do
-		cat m5out/faultLogs.txt | grep "Reading register $i\." | cut -d ':' -f1 > $simulationsfolder/$faultlogsfolder/$i.txt	
+		cat m5out/faultLogs.txt | grep "Reading register $i\." | cut -d ':' -f1 > $faultlogsfolder/$i.txt	
 		echo "Logs of register $i have been printed into $i.txt"
 	done
 	

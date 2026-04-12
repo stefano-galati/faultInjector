@@ -5,7 +5,7 @@ if [[ $# -ne 3 && $# -ne 4 ]]; then
   targetRange  e.g. 1-2
   maskRange    e.g. 1-7 (can also be provided in this way: every_bit,32 every_bit,16 ...)
   faultTypes   comma-separated, e.g. ST0,ST1,BITFLIP
-  bitflipInstants  e.g. 1-10 (applied only to BIFLIP faults)
+  bitflipInstants  e.g. 1-10 (applied only to BITFLIP faults)
   Example:  $0 1-2 1-7 ST0,ST1,BITFLIP 1-10"
   exit 1
 fi
