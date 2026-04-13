@@ -54,10 +54,9 @@ else
 			echo $nexttimestamp >> $timeintervalsfile
 		else
 			echo "Access number $accessnumber does not exist"
+			exit 1
 		fi
 	fi
-	
-	#TODO: save initial faultTimeIntervals.txt
 fi
 
 #generate lines to add to regMasks.txt

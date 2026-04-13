@@ -85,7 +85,7 @@ for tgt in "${targets[@]}"; do
     for m in "${masks[@]}"; do
       if [[ $fault == "BITFLIP" ]]; then
       	for instant in "${instants[@]}"; do
-          printf "%s_%s_%s;%s;%s;%s;%s\n" "$tgt" "$fault" "$m" "$tgt" "$m" "$fault" "$instant"
+          printf "%s_%s_%s_%s;%s;%s;%s;%s\n" "$tgt" "$fault" "$m" "$instant" "$tgt" "$m" "$fault" "$instant"
       	done
       else
       	printf "%s_%s_%s;%s;%s;%s\n" "$tgt" "$fault" "$m" "$tgt" "$m" "$fault"
