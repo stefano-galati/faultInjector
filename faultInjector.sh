@@ -280,11 +280,11 @@ while IFS= read -r line <&3 || [ -n "$line" ]; do
 		$currentfolder/$SCRIPTSFOLDER/gem5Execution.sh $gem5 $config $binaryfile $debugflags $debugfile $outputredfile $errorredfile no $ticklimit no
 		status=$?
 		
-		#echo "Status: $status"
-		if [[ $status == "255" ]]; then
-			echo "Exiting..."
-			exit 1
-		fi
+		echo "Status: $status"
+		#if [[ $status == "255" ]]; then
+		#	echo "Exiting..."
+		#	exit 1
+		#fi
 		
 		#classify the fault
 		$currentfolder/$SCRIPTSFOLDER/classify.sh $id $outputfile $outcorrectfile $summaryfile $status

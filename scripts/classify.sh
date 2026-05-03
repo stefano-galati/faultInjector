@@ -13,15 +13,11 @@ SUMMARYFILE=$4
 STATUS=$5		
 STATSFILE="m5out/stats.txt"
 
-
 if [[ $STATUS -ne 0 ]];	#DUE
 then
-	if [[ $STATUS -eq 2 ]];
+	if [[ $STATUS -eq 42 ]];
 	then
 		echo "$ID> DUE (infinite loop)" >> "$SUMMARYFILE"
-	elif [[ $STATUS -eq 134 ]];
-	then
-		echo "$ID> DUE (segmentation fault)" >> "$SUMMARYFILE"
 	else
 		echo "$ID> DUE" >> "$SUMMARYFILE"
 	fi

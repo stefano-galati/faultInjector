@@ -83,10 +83,10 @@ printf "#Id;targetReg;Mask;FaultType\n"
 for tgt in "${targets[@]}"; do
   for fault in "${faults[@]}"; do
     for m in "${masks[@]}"; do
-      if [[ $fault == "BITFLIP" ]]; then
-      	for instant in "${instants[@]}"; do
-          printf "%s_%s_%s_%s;%s;%s;%s;%s\n" "$tgt" "$fault" "$m" "$instant" "$tgt" "$m" "$fault" "$instant"
-      	done
+      if [[ $fault == "BITFLIP" ]] && [[ "$bitflipInstants" ]]; then
+      		for instant in "${instants[@]}"; do
+          	printf "%s_%s_%s_%s;%s;%s;%s;%s\n" "$tgt" "$fault" "$m" "$instant" "$tgt" "$m" "$fault" "$instant"
+      		done
       else
       	printf "%s_%s_%s;%s;%s;%s\n" "$tgt" "$fault" "$m" "$tgt" "$m" "$fault"
       fi
