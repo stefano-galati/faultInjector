@@ -177,7 +177,7 @@ if [[ $faultlogs == "yes" ]]; then
 	# save the debug logs in a file and abort the simulation
 	
 	for i in {0..31}; do
-		cat m5out/faultLogs.txt | grep "Reading register $i\." | cut -d ':' -f1 > $faultlogsfolder/$i.txt	
+		cat m5out/faultLogs.txt | grep "Reading register $i\." | cut -d ':' -f1 | uniq > $faultlogsfolder/$i.txt	
 		echo "Logs of register $i have been printed into $i.txt"
 	done
 	
